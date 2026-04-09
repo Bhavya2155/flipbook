@@ -12,7 +12,7 @@ body {
   background: #f2f2f2;
 }
 
-/* LIBRARY */
+/* BOOK GRID */
 .grid {
   display: flex;
   gap: 20px;
@@ -51,7 +51,7 @@ body {
   z-index: 999;
 }
 
-/* BOOK CENTER */
+/* VIEWER */
 #viewer {
   position: absolute;
   top: 50%;
@@ -59,9 +59,6 @@ body {
   transform: translate(-50%, -50%);
   width: 80vw;
   height: 85vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
 }
 
 /* PAGES */
@@ -81,6 +78,7 @@ body {
   object-fit: contain;
 }
 
+/* FLIP */
 .next { transform: translateX(100%); }
 .prev { transform: translateX(-100%); }
 
@@ -89,13 +87,12 @@ body {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  font-size: 30px;
+  font-size: 28px;
   background: rgba(255,255,255,0.2);
   color: white;
   border-radius: 50%;
   padding: 15px;
   cursor: pointer;
-  user-select: none;
 }
 
 #left { left: 20px; }
@@ -111,15 +108,12 @@ body {
   cursor: pointer;
 }
 
-/* BOTTOM BAR */
+/* PAGE COUNTER */
 #controls {
   position: absolute;
   bottom: 20px;
   left: 50%;
   transform: translateX(-50%);
-  background: rgba(255,255,255,0.15);
-  padding: 10px 20px;
-  border-radius: 10px;
   color: white;
 }
 </style>
@@ -129,7 +123,7 @@ body {
 
 <div class="grid" id="books"></div>
 
-<!-- OVERLAY VIEWER -->
+<!-- OVERLAY -->
 <div id="overlay">
   <div id="close" onclick="closeViewer()">✕</div>
 
@@ -152,7 +146,7 @@ const controls = document.getElementById("controls");
 let pages = [];
 let currentPage = 0;
 
-// LOAD LIBRARY
+// LOAD BOOKS
 books.forEach(book => {
   const div = document.createElement("div");
   div.className = "card";
@@ -220,7 +214,7 @@ function prev() {
   }
 }
 
-// SWIPE
+// SWIPE SUPPORT
 let startX = 0;
 
 viewer.addEventListener("touchstart", e => {
