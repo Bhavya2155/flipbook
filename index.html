@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Flipbook FINAL</title>
+<title>Flipbook Pro Final</title>
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/turn.js/4.1.0/turn.min.js"></script>
@@ -15,6 +15,7 @@ body {
   font-family: sans-serif;
 }
 
+/* BOOK LIST */
 .grid {
   display: flex;
   gap: 20px;
@@ -56,11 +57,14 @@ body {
   opacity: 1;
 }
 
+/* BOOK WRAPPER (for zoom) */
+#book-wrapper {
+  transform-origin: center;
+  transition: transform 0.2s;
+}
+
 /* BOOK */
 #flipbook {
-  width: 400px;   /* 🔥 FIXED SIZE */
-  height: 600px;  /* 🔥 FIXED SIZE */
-
   background: white;
   border-radius: 10px;
   overflow: hidden;
@@ -106,6 +110,24 @@ body {
 
 #left { left: 20px; }
 #right { right: 20px; }
+
+/* ZOOM BUTTONS */
+#zoom-controls {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 10px;
+}
+
+.zoom-btn {
+  background: rgba(255,255,255,0.2);
+  color: white;
+  padding: 10px 15px;
+  border-radius: 10px;
+  cursor: pointer;
+}
 </style>
 </head>
 
@@ -115,9 +137,18 @@ body {
 
 <div id="overlay">
   <div id="close" onclick="closeViewer()">✕</div>
-  <div id="flipbook"></div>
+
+  <div id="book-wrapper">
+    <div id="flipbook"></div>
+  </div>
+
   <div id="left" class="arrow" onclick="prev()">❮</div>
   <div id="right" class="arrow" onclick="next()">❯</div>
+
+  <div id="zoom-controls">
+    <div class="zoom-btn" onclick="zoomIn()">+</div>
+    <div class="zoom-btn" onclick="zoomOut()">−</div>
+  </div>
 </div>
 
 <script src="data.js"></script>
@@ -125,6 +156,9 @@ body {
 <script>
 const container = document.getElementById("books");
 
+let zoom = 1;
+
+// LOAD BOOKS
 books.forEach(book => {
   const div = document.createElement("div");
   div.className = "card";
@@ -138,25 +172,33 @@ books.forEach(book => {
   container.appendChild(div);
 });
 
+// OPEN BOOK
 function openBook(book) {
   document.getElementById("overlay").classList.add("active");
 
   const flip = $("#flipbook");
   flip.html("");
 
+  // responsive size
+  const width = Math.min(window.innerWidth * 0.6, 500);
+  const height = width * 1.4; // maintain ratio
+
+  $("#flipbook").css({
+    width: width + "px",
+    height: height + "px"
+  });
+
   for (let i = 1; i <= book.pages; i++) {
     flip.append(`<div><img src="books/${book.id}/page${i}.jpg"></div>`);
   }
 
-  // 🔥 IMPORTANT: DESTROY OLD INSTANCE
   if (flip.data("turn")) {
     flip.turn("destroy");
   }
 
-  // 🔥 FIX: PROPER INIT
   flip.turn({
-    width: 400,
-    height: 600,
+    width: width,
+    height: height,
     autoCenter: true,
     display: "single"
   });
@@ -164,17 +206,30 @@ function openBook(book) {
   window.flip = flip;
 }
 
+// CLOSE
 function closeViewer() {
   document.getElementById("overlay").classList.remove("active");
   if (window.flip) window.flip.turn("destroy");
 }
 
+// NAVIGATION
 function next() {
   if (window.flip) window.flip.turn("next");
 }
 
 function prev() {
   if (window.flip) window.flip.turn("previous");
+}
+
+// ZOOM
+function zoomIn() {
+  zoom += 0.2;
+  document.getElementById("book-wrapper").style.transform = `scale(${zoom})`;
+}
+
+function zoomOut() {
+  zoom = Math.max(1, zoom - 0.2);
+  document.getElementById("book-wrapper").style.transform = `scale(${zoom})`;
 }
 </script>
 
