@@ -3,25 +3,28 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Flipbook FINAL FIX</title>
+<title>Flipbook FINAL ABSOLUTE FIX</title>
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/turn.js/4.1.0/turn.min.js"></script>
 
 <style>
-body {
+html, body {
   margin: 0;
-  background: #f2f2f2;
+  height: 100%;
+  overflow-x: hidden;
   font-family: sans-serif;
+  background: #f2f2f2;
 }
 
-/* BOOK LIST */
+/* BOOK GRID */
 .grid {
   display: flex;
   gap: 20px;
   padding: 20px;
 }
 
+/* CARDS */
 .card {
   width: 180px;
   background: white;
@@ -36,19 +39,21 @@ body {
   object-fit: cover;
 }
 
-/* OVERLAY FIXED */
+/* 🔥 FULLSCREEN OVERLAY (FIXED PROPERLY) */
 #overlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+  inset: 0; /* 🔥 strongest fix */
 
-  background: rgba(0,0,0,0.85);
+  width: 100vw;
+  height: 100vh;
+
+  background: rgba(0,0,0,0.9);
 
   display: flex;
   justify-content: center;
   align-items: center;
+
+  z-index: 9999;
 
   visibility: hidden;
   opacity: 0;
@@ -58,14 +63,6 @@ body {
 #overlay.active {
   visibility: visible;
   opacity: 1;
-}
-
-/* CENTER WRAPPER (THIS FIXES YOUR ISSUE) */
-#center-box {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100%;
 }
 
 /* BOOK */
@@ -95,7 +92,7 @@ body {
   top: 20px;
   right: 25px;
   color: white;
-  font-size: 30px;
+  font-size: 32px;
   cursor: pointer;
 }
 
@@ -104,8 +101,8 @@ body {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  width: 45px;
-  height: 45px;
+  width: 50px;
+  height: 50px;
   background: rgba(255,255,255,0.2);
   color: white;
   border-radius: 50%;
@@ -127,9 +124,7 @@ body {
 <div id="overlay">
   <div id="close" onclick="closeViewer()">✕</div>
 
-  <div id="center-box">
-    <div id="flipbook"></div>
-  </div>
+  <div id="flipbook"></div>
 
   <div id="left" class="arrow" onclick="prev()">❮</div>
   <div id="right" class="arrow" onclick="next()">❯</div>
@@ -140,7 +135,6 @@ body {
 <script>
 const container = document.getElementById("books");
 
-// LOAD BOOKS
 books.forEach(book => {
   const div = document.createElement("div");
   div.className = "card";
@@ -154,9 +148,11 @@ books.forEach(book => {
   container.appendChild(div);
 });
 
-// OPEN BOOK
 function openBook(book) {
-  document.getElementById("overlay").classList.add("active");
+  const overlay = document.getElementById("overlay");
+  overlay.classList.add("active");
+
+  document.body.style.overflow = "hidden"; // 🔥 prevent scroll shift
 
   const flip = $("#flipbook");
   flip.html("");
@@ -179,13 +175,13 @@ function openBook(book) {
   window.flip = flip;
 }
 
-// CLOSE
 function closeViewer() {
   document.getElementById("overlay").classList.remove("active");
+  document.body.style.overflow = "auto";
+
   if (window.flip) window.flip.turn("destroy");
 }
 
-// NAV
 function next() {
   if (window.flip) window.flip.turn("next");
 }
