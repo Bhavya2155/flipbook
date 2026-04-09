@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reader</title>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/blasten/turn.js/turn.min.js"></script>
+<script src="data.js"></script>
+
+<style>
+body {
+    margin: 0;
+    background: #111;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+/* LOADER */
+#loader {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.9);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    z-index: 100;
+}
+
+.spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid #444;
+    border-top: 4px solid white;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 10px;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+#flipbook {
+    display: none;
+}
+
+.page img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+</style>
+</head>
+
+<body>
+
+<div id="loader">
+    <div class="spinner"></div>
+    <div id="progress">Loading Book 0%</div>
+</div>
+
+<div id="flipbook"></div>
+
+<script>
+const params = new URLSearchParams(window.location.search);
+const bookId = params.get("book");
+
+const book = BOOKS.find(b => b.id === bookId);
+
+const flipbook = document.getElementById("flipbook");
+
+let loaded = 0;
+let images = [];
+
+// PRELOAD FULL BOOK
+for (let i = 1; i <= book.pages; i++) {
+    let img = new Image();
+    img.src = `books/${book.id}/page${i}.jpg`;
+
+    img.onload = () => {
+        loaded++;
+        let percent = Math.floor((loaded / book.pages) * 100);
+        document.getElementById("progress").innerText = `Loading Book ${percent}%`;
+
+        if (loaded === book.pages) {
+            initBook();
+        }
+    };
+
+    images.push(img);
+}
+
+function initBook() {
+
+    images.forEach(img => {
+        let div = document.createElement("div");
+        div.className = "page";
+        div.appendChild(img);
+        flipbook.appendChild(div);
+    });
+
+    document.getElementById("loader").style.display = "none";
+    flipbook.style.display = "block";
+
+    $('#flipbook').turn({
+        width: 900,
+        height: 600,
+        autoCenter: true,
+        elevation: 100,
+        gradients: true,
+        duration: 700
+    });
+}
+</script>
+
+</body>
+</html>
