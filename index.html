@@ -41,28 +41,38 @@ body {
 /* OVERLAY */
 #overlay {
   position: fixed;
+  top: 0;
+  left: 0;
   width: 100%;
   height: 100%;
+
   background: rgba(0,0,0,0.85);
-  backdrop-filter: blur(6px);
-  display: none;
+  backdrop-filter: blur(8px);
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  visibility: hidden;
+  opacity: 0;
+  transition: 0.3s;
+
   z-index: 999;
+}
+
+#overlay.active {
+  visibility: visible;
+  opacity: 1;
 }
 
 /* BOOK */
 #flipbook {
-  width: 80vw;
-  height: 85vh;
-  margin: auto;
-  position: relative;
-  top: 50%;
-  transform: translateY(-50%);
-}
+  width: min(90vw, 900px);
+  height: min(80vh, 650px);
 
-#flipbook img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
+  box-shadow: 0 25px 80px rgba(0,0,0,0.7);
+  border-radius: 10px;
+  overflow: hidden;
 }
 
 /* CLOSE */
@@ -71,9 +81,32 @@ body {
   top: 20px;
   right: 25px;
   color: white;
-  font-size: 30px;
+  font-size: 32px;
   cursor: pointer;
 }
+
+/* ARROWS */
+.arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+
+  width: 50px;
+  height: 50px;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  background: rgba(255,255,255,0.15);
+  color: white;
+  border-radius: 50%;
+  font-size: 22px;
+  cursor: pointer;
+}
+
+#left { left: 20px; }
+#right { right: 20px; }
 
 /* TOOLBAR */
 #toolbar {
@@ -81,11 +114,13 @@ body {
   bottom: 20px;
   left: 50%;
   transform: translateX(-50%);
+
   display: flex;
   gap: 15px;
+
   background: rgba(255,255,255,0.15);
   padding: 10px 20px;
-  border-radius: 10px;
+  border-radius: 12px;
   color: white;
 }
 
@@ -101,7 +136,11 @@ body {
 
 <div id="overlay">
   <div id="close" onclick="closeViewer()">✕</div>
+
   <div id="flipbook"></div>
+
+  <div id="left" class="arrow" onclick="prev()">❮</div>
+  <div id="right" class="arrow" onclick="next()">❯</div>
 
   <div id="toolbar">
     <span class="tool" onclick="zoomIn()">➕</span>
@@ -134,7 +173,7 @@ books.forEach(book => {
 
 // OPEN BOOK
 function openBook(book) {
-  document.getElementById("overlay").style.display = "block";
+  document.getElementById("overlay").classList.add("active");
 
   const flip = $("#flipbook");
   flip.html("");
@@ -144,34 +183,31 @@ function openBook(book) {
   }
 
   flip.turn({
-    width: window.innerWidth * 0.8,
-    height: window.innerHeight * 0.85,
+    width: $("#flipbook").width(),
+    height: $("#flipbook").height(),
     autoCenter: true,
-    display: "double" // 🔥 double page
+    display: window.innerWidth < 768 ? "single" : "double"
   });
 
-  // TOUCH SUPPORT
-  const hammer = new Hammer(document.getElementById("flipbook"));
-
-  hammer.on("swipeleft", () => flip.turn("next"));
-  hammer.on("swiperight", () => flip.turn("previous"));
-
-  // PINCH ZOOM
-  hammer.get("pinch").set({ enable: true });
-
-  hammer.on("pinchmove", e => {
-    zoom = Math.min(Math.max(1, e.scale), 3);
-    flip.css("transform", `scale(${zoom})`);
-  });
+  window.currentFlip = flip;
 }
 
 // CLOSE
 function closeViewer() {
-  document.getElementById("overlay").style.display = "none";
-  $("#flipbook").turn("destroy");
+  document.getElementById("overlay").classList.remove("active");
+  if (window.currentFlip) window.currentFlip.turn("destroy");
 }
 
-// ZOOM BUTTONS
+// NAVIGATION
+function next() {
+  window.currentFlip.turn("next");
+}
+
+function prev() {
+  window.currentFlip.turn("previous");
+}
+
+// ZOOM
 function zoomIn() {
   zoom += 0.2;
   $("#flipbook").css("transform", `scale(${zoom})`);
@@ -182,13 +218,10 @@ function zoomOut() {
   $("#flipbook").css("transform", `scale(${zoom})`);
 }
 
-// TOGGLE SINGLE / DOUBLE PAGE
+// TOGGLE VIEW
 function toggleView() {
-  const flip = $("#flipbook");
-
   singlePage = !singlePage;
-
-  flip.turn("display", singlePage ? "single" : "double");
+  window.currentFlip.turn("display", singlePage ? "single" : "double");
 }
 </script>
 
