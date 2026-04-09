@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Book Library</title>
+<title>Flipbook Library</title>
 
 <style>
 body {
@@ -12,20 +12,9 @@ body {
   background: #f2f2f2;
 }
 
-header {
-  padding: 15px;
-}
-
-input {
-  width: 250px;
-  padding: 10px;
-  border-radius: 10px;
-  border: none;
-}
-
+/* LIBRARY */
 .grid {
   display: flex;
-  flex-wrap: wrap;
   gap: 20px;
   padding: 20px;
 }
@@ -36,7 +25,6 @@ input {
   border-radius: 15px;
   overflow: hidden;
   cursor: pointer;
-  box-shadow: 0 5px 15px rgba(0,0,0,0.1);
 }
 
 .card img {
@@ -49,50 +37,202 @@ input {
   padding: 10px;
   margin: 0;
 }
+
+/* OVERLAY */
+#overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.75);
+  backdrop-filter: blur(6px);
+  display: none;
+  z-index: 999;
+}
+
+/* BOOK CENTER */
+#viewer {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 80vw;
+  height: 85vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* PAGES */
+.page {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: transform 0.5s ease;
+}
+
+.page img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.next { transform: translateX(100%); }
+.prev { transform: translateX(-100%); }
+
+/* ARROWS */
+.arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 30px;
+  background: rgba(255,255,255,0.2);
+  color: white;
+  border-radius: 50%;
+  padding: 15px;
+  cursor: pointer;
+  user-select: none;
+}
+
+#left { left: 20px; }
+#right { right: 20px; }
+
+/* CLOSE BUTTON */
+#close {
+  position: absolute;
+  top: 20px;
+  right: 25px;
+  font-size: 28px;
+  color: white;
+  cursor: pointer;
+}
+
+/* BOTTOM BAR */
+#controls {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(255,255,255,0.15);
+  padding: 10px 20px;
+  border-radius: 10px;
+  color: white;
+}
 </style>
 </head>
 
 <body>
 
-<header>
-  <input type="text" id="search" placeholder="Search books...">
-</header>
+<div class="grid" id="books"></div>
 
-<div class="grid" id="bookList"></div>
+<!-- OVERLAY VIEWER -->
+<div id="overlay">
+  <div id="close" onclick="closeViewer()">✕</div>
+
+  <div id="viewer"></div>
+
+  <div id="left" class="arrow" onclick="prev()">❮</div>
+  <div id="right" class="arrow" onclick="next()">❯</div>
+
+  <div id="controls"></div>
+</div>
 
 <script src="data.js"></script>
 
 <script>
-const container = document.getElementById("bookList");
-const search = document.getElementById("search");
+const container = document.getElementById("books");
+const viewer = document.getElementById("viewer");
+const overlay = document.getElementById("overlay");
+const controls = document.getElementById("controls");
 
-function renderBooks(filter = "") {
-  container.innerHTML = "";
+let pages = [];
+let currentPage = 0;
 
-  books
-    .filter(b => b.title.toLowerCase().includes(filter.toLowerCase()))
-    .forEach(book => {
-      const div = document.createElement("div");
-      div.className = "card";
+// LOAD LIBRARY
+books.forEach(book => {
+  const div = document.createElement("div");
+  div.className = "card";
 
-      div.innerHTML = `
-        <img src="${book.cover}">
-        <p>${book.title}</p>
-      `;
+  div.innerHTML = `
+    <img src="${book.cover}">
+    <p>${book.title}</p>
+  `;
 
-      div.onclick = () => {
-        window.location.href = `viewer.html?book=${book.id}`;
-      };
-
-      container.appendChild(div);
-    });
-}
-
-search.addEventListener("input", e => {
-  renderBooks(e.target.value);
+  div.onclick = () => openBook(book);
+  container.appendChild(div);
 });
 
-renderBooks();
+// OPEN BOOK
+function openBook(book) {
+  overlay.style.display = "block";
+
+  pages = [];
+  for (let i = 1; i <= book.pages; i++) {
+    pages.push(`books/${book.id}/page${i}.jpg`);
+  }
+
+  currentPage = 0;
+  render();
+}
+
+// CLOSE
+function closeViewer() {
+  overlay.style.display = "none";
+}
+
+// RENDER
+function render() {
+  viewer.innerHTML = "";
+
+  pages.forEach((src, i) => {
+    const div = document.createElement("div");
+    div.className = "page";
+
+    if (i < currentPage) div.classList.add("prev");
+    if (i > currentPage) div.classList.add("next");
+
+    const img = document.createElement("img");
+    img.src = src;
+
+    div.appendChild(img);
+    viewer.appendChild(div);
+  });
+
+  controls.innerText = `${currentPage + 1} / ${pages.length}`;
+}
+
+// NAVIGATION
+function next() {
+  if (currentPage < pages.length - 1) {
+    currentPage++;
+    render();
+  }
+}
+
+function prev() {
+  if (currentPage > 0) {
+    currentPage--;
+    render();
+  }
+}
+
+// SWIPE
+let startX = 0;
+
+viewer.addEventListener("touchstart", e => {
+  startX = e.touches[0].clientX;
+});
+
+viewer.addEventListener("touchend", e => {
+  let endX = e.changedTouches[0].clientX;
+
+  if (startX - endX > 50) next();
+  if (endX - startX > 50) prev();
+});
 </script>
 
 </body>
