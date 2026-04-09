@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Flipbook Stable</title>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/turn.js/4.1.0/turn.min.js"></script>
+
+<style>
+body {
+  margin: 0;
+  background: #f2f2f2;
+  font-family: sans-serif;
+}
+
+/* BOOK LIST */
+.grid {
+  display: flex;
+  gap: 20px;
+  padding: 20px;
+}
+
+.card {
+  width: 180px;
+  background: white;
+  border-radius: 10px;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.card img {
+  width: 100%;
+  height: 240px;
+  object-fit: cover;
+}
+
+/* OVERLAY */
+#overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.85);
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  visibility: hidden;
+  opacity: 0;
+  transition: 0.3s;
+}
+
+#overlay.active {
+  visibility: visible;
+  opacity: 1;
+}
+
+/* BOOK */
+#flipbook {
+  width: auto;
+  height: 85vh;
+  max-width: 95vw;
+
+  background: white;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+/* PAGE */
+#flipbook div {
+  width: auto;
+  height: 100%;
+}
+
+#flipbook img {
+  height: 100%;
+  width: auto;   /* 🔥 KEY FIX: keep ratio */
+  display: block;
+  margin: auto;
+}
+
+/* CLOSE */
+#close {
+  position: absolute;
+  top: 20px;
+  right: 25px;
+  color: white;
+  font-size: 30px;
+  cursor: pointer;
+}
+
+/* ARROWS */
+.arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 45px;
+  height: 45px;
+  background: rgba(255,255,255,0.2);
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+}
+
+#left { left: 20px; }
+#right { right: 20px; }
+</style>
+</head>
+
+<body>
+
+<div class="grid" id="books"></div>
+
+<div id="overlay">
+  <div id="close" onclick="closeViewer()">✕</div>
+  <div id="flipbook"></div>
+  <div id="left" class="arrow" onclick="prev()">❮</div>
+  <div id="right" class="arrow" onclick="next()">❯</div>
+</div>
+
+<script src="data.js"></script>
+
+<script>
+const container = document.getElementById("books");
+
+// SHOW BOOKS
+books.forEach(book => {
+  const div = document.createElement("div");
+  div.className = "card";
+
+  div.innerHTML = `
+    <img src="${book.cover}">
+    <p>${book.title}</p>
+  `;
+
+  div.onclick = () => openBook(book);
+  container.appendChild(div);
+});
+
+// OPEN BOOK
+function openBook(book) {
+  const overlay = document.getElementById("overlay");
+  overlay.classList.add("active");
+
+  const flip = $("#flipbook");
+  flip.html("");
+
+  // ADD ALL PAGES
+  for (let i = 1; i <= book.pages; i++) {
+    flip.append(`<div><img src="books/${book.id}/page${i}.jpg"></div>`);
+  }
+
+  // INIT AFTER DOM READY
+  setTimeout(() => {
+    flip.turn({
+      autoCenter: true,
+      display: "single",   // 🔥 IMPORTANT
+      elevation: 50,
+      gradients: true
+    });
+
+    window.flip = flip;
+  }, 100);
+}
+
+// CLOSE
+function closeViewer() {
+  document.getElementById("overlay").classList.remove("active");
+  if (window.flip) window.flip.turn("destroy");
+}
+
+// NAV
+function next() {
+  if (window.flip) window.flip.turn("next");
+}
+
+function prev() {
+  if (window.flip) window.flip.turn("previous");
+}
+</script>
+
+</body>
+</html>
