@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Flipbook Pro Final</title>
+<title>Flipbook FINAL FIXED</title>
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/turn.js/4.1.0/turn.min.js"></script>
@@ -57,14 +57,15 @@ body {
   opacity: 1;
 }
 
-/* BOOK WRAPPER (for zoom) */
-#book-wrapper {
+/* WRAPPER (for scaling) */
+#wrapper {
   transform-origin: center;
-  transition: transform 0.2s;
 }
 
-/* BOOK */
+/* BOOK (FIXED SIZE — IMPORTANT) */
 #flipbook {
+  width: 420px;
+  height: 600px;
   background: white;
   border-radius: 10px;
   overflow: hidden;
@@ -110,24 +111,6 @@ body {
 
 #left { left: 20px; }
 #right { right: 20px; }
-
-/* ZOOM BUTTONS */
-#zoom-controls {
-  position: absolute;
-  bottom: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-  display: flex;
-  gap: 10px;
-}
-
-.zoom-btn {
-  background: rgba(255,255,255,0.2);
-  color: white;
-  padding: 10px 15px;
-  border-radius: 10px;
-  cursor: pointer;
-}
 </style>
 </head>
 
@@ -138,25 +121,18 @@ body {
 <div id="overlay">
   <div id="close" onclick="closeViewer()">✕</div>
 
-  <div id="book-wrapper">
+  <div id="wrapper">
     <div id="flipbook"></div>
   </div>
 
   <div id="left" class="arrow" onclick="prev()">❮</div>
   <div id="right" class="arrow" onclick="next()">❯</div>
-
-  <div id="zoom-controls">
-    <div class="zoom-btn" onclick="zoomIn()">+</div>
-    <div class="zoom-btn" onclick="zoomOut()">−</div>
-  </div>
 </div>
 
 <script src="data.js"></script>
 
 <script>
 const container = document.getElementById("books");
-
-let zoom = 1;
 
 // LOAD BOOKS
 books.forEach(book => {
@@ -172,21 +148,26 @@ books.forEach(book => {
   container.appendChild(div);
 });
 
+// SCALE FUNCTION (RESPONSIVE FIX)
+function scaleBook() {
+  const wrapper = document.getElementById("wrapper");
+
+  const scale = Math.min(
+    window.innerWidth / 500,
+    window.innerHeight / 700
+  );
+
+  wrapper.style.transform = `scale(${scale})`;
+}
+
+window.addEventListener("resize", scaleBook);
+
 // OPEN BOOK
 function openBook(book) {
   document.getElementById("overlay").classList.add("active");
 
   const flip = $("#flipbook");
   flip.html("");
-
-  // responsive size
-  const width = Math.min(window.innerWidth * 0.6, 500);
-  const height = width * 1.4; // maintain ratio
-
-  $("#flipbook").css({
-    width: width + "px",
-    height: height + "px"
-  });
 
   for (let i = 1; i <= book.pages; i++) {
     flip.append(`<div><img src="books/${book.id}/page${i}.jpg"></div>`);
@@ -197,13 +178,17 @@ function openBook(book) {
   }
 
   flip.turn({
-    width: width,
-    height: height,
+    width: 420,
+    height: 600,
     autoCenter: true,
-    display: "single"
+    display: "single",
+    elevation: 50,
+    gradients: true
   });
 
   window.flip = flip;
+
+  scaleBook(); // 🔥 APPLY SCALE AFTER INIT
 }
 
 // CLOSE
@@ -212,24 +197,13 @@ function closeViewer() {
   if (window.flip) window.flip.turn("destroy");
 }
 
-// NAVIGATION
+// NAV
 function next() {
   if (window.flip) window.flip.turn("next");
 }
 
 function prev() {
   if (window.flip) window.flip.turn("previous");
-}
-
-// ZOOM
-function zoomIn() {
-  zoom += 0.2;
-  document.getElementById("book-wrapper").style.transform = `scale(${zoom})`;
-}
-
-function zoomOut() {
-  zoom = Math.max(1, zoom - 0.2);
-  document.getElementById("book-wrapper").style.transform = `scale(${zoom})`;
 }
 </script>
 
