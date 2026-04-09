@@ -9,6 +9,6 @@ const books = [
     id: "book2",
     title: "Akram Express March",
     cover: "books/book2/page1.jpg",
-    pages: 17
+    pages: 16
   }
 ];
