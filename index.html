@@ -19,7 +19,7 @@ h1 {
   color: red;
 }
 
-/* 🔥 FIXED GRID SIZE */
+/* GRID */
 .grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 300px));
@@ -42,7 +42,7 @@ h1 {
 
 .book img {
   width: 100%;
-  height: 350px; /* 🔥 FIXED CARD SIZE */
+  height: 350px;
   object-fit: cover;
   border-radius: 10px;
 }
@@ -81,12 +81,13 @@ h1 {
   display: flex;
   flex-direction: column;
   align-items: center;
+  gap: 20px;
 }
 
-/* 🔥 CORRECT BOOK SIZE (MATCH IMAGE RATIO) */
+/* BOOK */
 #book {
-  width: 360px;
-  height: 485px; /* 1358/1004 ratio */
+  max-width: 90vw;
+  max-height: 80vh;
   touch-action: pan-y;
 }
 
@@ -112,7 +113,6 @@ h1 {
 
 /* CONTROLS */
 .controls {
-  margin-top: 20px;
   background: white;
   padding: 10px 20px;
   border-radius: 10px;
@@ -188,10 +188,11 @@ function openBook(bookName) {
   setTimeout(() => {
 
     pageFlip = new St.PageFlip(container, {
-      width: 360,
-      height: 485,
+      width: 300,
+      height: 405,
       size: "fixed",
       showCover: true,
+      usePortrait: false,   // 🔥 2-page spread
 
       useMouseEvents: true,
       mobileScrollSupport: true,
