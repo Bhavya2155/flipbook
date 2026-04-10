@@ -53,9 +53,13 @@ h1 {
   height: 100%;
   backdrop-filter: blur(10px);
   background: rgba(0,0,0,0.7);
+
   display: none;
   justify-content: center;
   align-items: center;
+
+  padding: 60px;
+  box-sizing: border-box;
   z-index: 999;
 }
 
@@ -71,24 +75,23 @@ h1 {
 
 /* BOOK */
 #book {
-  width: 90vw;
-  max-width: 900px;
-  height: 600px;
+  width: 100%;
+  max-width: 800px;
+  aspect-ratio: 3 / 2;
 }
 
-/* NAV BUTTONS */
+/* ARROWS */
 .nav {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  font-size: 40px;
+  font-size: 35px;
   color: white;
   cursor: pointer;
-  user-select: none;
 }
 
-.left { left: 20px; }
-.right { right: 20px; }
+.left { left: 40px; }
+.right { right: 40px; }
 
 /* PAGE */
 .page img {
@@ -97,7 +100,7 @@ h1 {
   object-fit: cover;
 }
 
-/* BOTTOM CONTROLS */
+/* CONTROLS */
 .controls {
   position: absolute;
   bottom: 20px;
@@ -116,7 +119,6 @@ h1 {
   cursor: pointer;
   border-radius: 5px;
 }
-
 </style>
 </head>
 
@@ -157,7 +159,6 @@ h1 {
 <script src="https://cdn.jsdelivr.net/npm/page-flip/dist/js/page-flip.browser.min.js"></script>
 
 <script>
-
 let pageFlip;
 let totalPages = 16;
 
@@ -184,10 +185,11 @@ function openBook(bookName) {
   setTimeout(() => {
 
     pageFlip = new St.PageFlip(container, {
-      width: 450,
-      height: 600,
+      width: 380,
+      height: 520,
       size: "stretch",
-      showCover: true
+      showCover: true,
+      maxShadowOpacity: 0.5
     });
 
     pageFlip.loadFromHTML(document.querySelectorAll(".page"));
@@ -202,7 +204,14 @@ function openBook(bookName) {
 }
 
 function closeBook() {
-  document.getElementById("viewerModal").style.display = "none";
+  const modal = document.getElementById("viewerModal");
+
+  if (pageFlip) {
+    pageFlip.destroy(); // 🔥 fixes close bug
+    pageFlip = null;
+  }
+
+  modal.style.display = "none";
 }
 
 function nextPage() {
@@ -217,7 +226,6 @@ function updatePageInfo() {
   const current = pageFlip.getCurrentPageIndex() + 1;
   document.getElementById("pageInfo").innerText = `${current} / ${totalPages}`;
 }
-
 </script>
 
 </body>
